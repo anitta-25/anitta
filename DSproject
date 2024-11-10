@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
+#define MAX_DIRECTIONS 4
+
+typedef struct {
+    const char *direction_name;
+    int green_time;
+    int is_green;
+} Direction;
+
+Direction directions[MAX_DIRECTIONS];
+int front = -1;
+int rear = -1;
+int count = 0;
+
+
+void initializeDirections() {
+
+    const char *direction_names[MAX_DIRECTIONS] = {"North", "East", "South", "West"};
+
+    int green_times[MAX_DIRECTIONS] = {3, 3, 3, 3};
+
+    for (int i = 0; i < MAX_DIRECTIONS; i++) {
+        directions[i].direction_name = direction_names[i];
+        directions[i].green_time = green_times[i];
+        directions[i].is_green = 0; // Initially all red
+    }
+}
+
+
+void enqueue(Direction direction) {
+    if (count < MAX_DIRECTIONS) {
+        rear = (rear + 1) % MAX_DIRECTIONS;
+        directions[rear] = direction;
+        count++;
+    }
+}
+
+Direction dequeue() {
+    Direction removed_direction = directions[front];
+    front = (front + 1) % MAX_DIRECTIONS;
+    count--;
+    return removed_direction;
+}
+
+void nextDirection() {
+       directions[front].is_green = 0;
+
+     enqueue(directions[front]);
+
+    front = (front + 1) % MAX_DIRECTIONS;
+
+    directions[front].is_green = 1;
+}
+
+
+void displayStatus() {
+
+    printf("\nTraffic Signal Status:\n");
+    for (int i = 0; i < MAX_DIRECTIONS; i++) {
+        printf("%s: %s\n", directions[i].direction_name,
+               directions[i].is_green ? "Green" : "Red");
+    }
+}
+
+
+void TimerTrafficSignals() {
+    while (1) {
+
+        displayStatus();
+
+        sleep(directions[front].green_time);
+
+        nextDirection();
+    }
+}
+
+int main() {
+       initializeDirections();
+
+        for (int i = 0; i < MAX_DIRECTIONS; i++) {
+        enqueue(directions[i]);
+    }
+
+        TimerTrafficSignals();
+
+    return 0;
+}
+
+
